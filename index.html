@@ -737,11 +737,20 @@
     const LS_KEY_ASST = 'backboard_assistantId';
 
     const LS_KEY_HISTORY = 'noto_chat_history';
+    const LS_KEY_TAGS = 'noto_note_tags';
 
     let apiKey = localStorage.getItem(LS_KEY_API) || '';
     let assistantId = localStorage.getItem(LS_KEY_ASST) || '';
     let threadId = null;
     let currentChatId = null;
+
+    function getNoteTags() {
+      try { return JSON.parse(localStorage.getItem(LS_KEY_TAGS) || '{}'); }
+      catch { return {}; }
+    }
+    function setNoteTags(map) {
+      localStorage.setItem(LS_KEY_TAGS, JSON.stringify(map));
+    }
     let chatHistory = [];
 
     const gate = document.getElementById('gate');
@@ -858,9 +867,10 @@
     function renderNotes() {
       memoriesListEl.innerHTML = '';
       let notes = allNotes;
+      const tagMap = getNoteTags();
       if (activeTagFilters.size > 0) {
         notes = notes.filter(m => {
-          const tags = m.tags || [];
+          const tags = tagMap[m.id] || m.tags || [];
           return Array.from(activeTagFilters).some(t => tags.includes(t));
         });
       }
@@ -882,6 +892,9 @@
           try {
             await api('DELETE', `/assistants/${assistantId}/memories/${m.id}`);
             allNotes = allNotes.filter(n => n.id !== m.id);
+            const tagMap = getNoteTags();
+            delete tagMap[m.id];
+            setNoteTags(tagMap);
             renderNotes();
           } catch (err) {
             alert('Failed to delete: ' + err.message);
@@ -951,7 +964,8 @@
 
         const tagsDiv = document.createElement('div');
         tagsDiv.className = 'memory-tags';
-        const tags = m.tags || [];
+        const tagMap = getNoteTags();
+        const tags = tagMap[m.id] || m.tags || [];
         for (const tag of tags) {
           const tagEl = document.createElement('span');
           tagEl.className = 'memory-tag';
@@ -1265,7 +1279,13 @@
       memoryStatus.textContent = '';
       memoryStatus.className = 'status-msg';
       try {
-        await api('POST', `/assistants/${assistantId}/memories`, { content: text, tags });
+        const result = await api('POST', `/assistants/${assistantId}/memories`, { content: text });
+        const noteId = result.id || result.memory?.id;
+        if (noteId && tags.length > 0) {
+          const tagMap = getNoteTags();
+          tagMap[noteId] = tags;
+          setNoteTags(tagMap);
+        }
         memoryStatus.textContent = 'Saved to notes';
         memoryStatus.className = 'status-msg ok';
         memoryInput.value = '';
