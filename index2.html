@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Backboard Chat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: #1e1e1e;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Gate */
+    #gate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 30px;
+    }
+    .gate-card {
+      background: #2a2a2a;
+      border-radius: 10px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      border: 1px solid #333;
+      text-align: center;
+    }
+    .gate-card h1 { font-size: 1.75rem; margin-bottom: 6px; }
+    .gate-card p { color: #999; font-size: 0.95rem; margin-bottom: 24px; }
+    .field { margin-bottom: 16px; text-align: left; }
+    .field label { display: block; font-size: 0.85rem; color: #999; margin-bottom: 6px; }
+    .field input, .field textarea {
+      width: 100%;
+      background: #333;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      outline: none;
+      font-family: inherit;
+    }
+    .field input:focus, .field textarea:focus { border-color: #7c6af7; }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #7c6af7;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { opacity: 0.8; }
+    .btn.secondary {
+      background: transparent;
+      color: #999;
+      font-size: 0.8rem;
+      padding: 0;
+      width: auto;
+      margin-top: 12px;
+      text-decoration: underline;
+    }
+    .btn.secondary:hover { color: #e0e0e0; }
+    .btn.outline {
+      background: transparent;
+      border: 1px solid #444;
+      color: #999;
+      width: auto;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+    }
+    .btn.outline:hover { border-color: #7c6af7; color: #e0e0e0; }
+
+    /* Main App */
+    #main-app {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      padding: 30px;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: #2a2a2a;
+      border-bottom: 1px solid #333;
+      flex-shrink: 0;
+      border-radius: 10px 10px 0 0;
+    }
+    .app-header h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #e0e0e0;
+      margin: 0;
+    }
+    .app-header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: transparent;
+      color: #999;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .icon-btn:hover { border-color: #7c6af7; color: #e0e0e0; }
+
+    /* History panel */
+    .history-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 320px;
+      max-width: 85vw;
+      background: #2a2a2a;
+      border-right: 1px solid #333;
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .history-panel.open { transform: translateX(0); }
+    .history-panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .history-panel-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    .history-panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .history-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+      padding-right: 30px;
+      margin-bottom: 4px;
+    }
+    .history-item:hover { background: #333; }
+    .history-item-title {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #e0e0e0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-item-meta {
+      font-size: 0.75rem;
+      color: #777;
+      margin-top: 2px;
+    }
+    .history-item-delete {
+      position: absolute;
+      top: 50%;
+      right: 6px;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #666;
+      font-size: 0.85rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.15s;
+    }
+    .history-item:hover .history-item-delete { opacity: 1; }
+    .history-item-delete:hover { background: #f87171; color: #fff; }
+    .history-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .history-overlay.open { opacity: 1; pointer-events: auto; }
+
+    /* Tab bar */
+    .tab-bar {
+      display: flex;
+      background: #2a2a2a;
+      border-bottom: 1px solid #333;
+      flex-shrink: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 14px 16px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #999;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .tab-btn:hover { color: #e0e0e0; background: #323232; }
+    .tab-btn.active {
+      color: #e0e0e0;
+      border-bottom-color: #7c6af7;
+      background: #1e1e1e;
+    }
+
+    /* Tab content container */
+    .tab-panels {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .tab-panel {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .tab-panel.active { display: flex; }
+
+    /* Panel header (inside each tab) */
+    .panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #333;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: #2a2a2a;
+    }
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .panel-body::-webkit-scrollbar { width: 6px; }
+    .panel-body::-webkit-scrollbar-track { background: transparent; }
+    .panel-body::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+
+    /* Save Memory Tab */
+    .save-memory textarea {
+      width: 100%;
+      min-height: 160px;
+      background: #333;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 12px;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+    }
+    .save-memory textarea:focus { border-color: #7c6af7; }
+    .save-memory .btn { margin-top: 12px; }
+    .status-msg {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      min-height: 20px;
+    }
+    .status-msg.ok { color: #4ade80; }
+    .status-msg.err { color: #f87171; }
+
+    /* Chat Tab */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+    .messages {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 8px;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .messages::-webkit-scrollbar { width: 6px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+    .msg {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      word-wrap: break-word;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: #7c6af7;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.assistant {
+      align-self: flex-start;
+      background: #333;
+      color: #e0e0e0;
+      border: 1px solid #3a3a3a;
+      border-bottom-left-radius: 4px;
+    }
+    .msg.system {
+      align-self: center;
+      background: transparent;
+      color: #777;
+      font-size: 0.8rem;
+      padding: 4px 12px;
+      max-width: 90%;
+      text-align: center;
+    }
+    .chat-input-area {
+      padding: 12px 16px;
+      border-top: 1px solid #333;
+      background: #2a2a2a;
+      flex-shrink: 0;
+    }
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .chat-input-row textarea {
+      flex: 1;
+      min-height: 48px;
+      max-height: 160px;
+      background: #333;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 12px;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+    }
+    .chat-input-row textarea:focus { border-color: #7c6af7; }
+    .chat-input-row .btn { width: auto; padding: 0 24px; }
+
+    /* Memories Tab */
+    .memory-card {
+      background: #333;
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      position: relative;
+      padding-right: 56px;
+    }
+    .memory-card:hover { border-color: #7c6af7; }
+    .memory-card .delete-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #666;
+      font-size: 0.85rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .memory-card .delete-btn:hover {
+      background: #f87171;
+      color: #fff;
+    }
+    .memory-card .edit-btn {
+      position: absolute;
+      top: 6px;
+      right: 30px;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #666;
+      font-size: 0.75rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .memory-card .edit-btn:hover {
+      background: #7c6af7;
+      color: #fff;
+    }
+    .memory-card .edit-area {
+      display: none;
+    }
+    .memory-card .edit-area textarea {
+      width: 100%;
+      min-height: 80px;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 8px;
+      color: #e0e0e0;
+      font-size: 0.9rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .memory-card .edit-area textarea:focus { border-color: #7c6af7; }
+    .memory-card .edit-area .edit-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .memory-card .edit-area .edit-actions .btn {
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      width: auto;
+    }
+    .memory-card .edit-area .edit-actions .btn.secondary {
+      background: transparent;
+      border: 1px solid #444;
+      color: #999;
+    }
+    .memory-card .edit-area .edit-actions .btn.secondary:hover {
+      border-color: #666;
+      color: #e0e0e0;
+    }
+    .memory-card .content {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: #e0e0e0;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .memory-card .content.expanded {
+      display: block;
+      -webkit-line-clamp: unset;
+    }
+    .memory-card .ts {
+      font-size: 0.75rem;
+      color: #777;
+      margin-top: 6px;
+    }
+    .empty-state {
+      color: #777;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    /* Reset link */
+    .reset-link {
+      position: fixed;
+      bottom: 10px;
+      right: 12px;
+      font-size: 0.75rem;
+      color: #666;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 100;
+      font-family: inherit;
+    }
+    .reset-link:hover { color: #999; text-decoration: underline; }
+
+    /* Responsive */
+    @media (min-width: 768px) {
+      .tab-bar { display: none; }
+      .tab-panels {
+        display: grid !important;
+        grid-template-columns: 280px 1fr 300px;
+        position: static;
+        gap: 12px;
+        padding: 12px;
+        background: #1e1e1e;
+      }
+      .tab-panel {
+        position: static;
+        display: flex !important;
+        background: #2a2a2a;
+        border-radius: 10px;
+        border: 1px solid #333;
+        overflow: hidden;
+      }
+      .tab-panel .panel-header {
+        border-radius: 10px 10px 0 0;
+      }
+      /* Reset link position in desktop */
+      .reset-link {
+        bottom: 6px;
+        right: 6px;
+      }
+      .app-header {
+        border-radius: 10px;
+        margin: 12px 12px 0 12px;
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .tab-panels {
+        grid-template-columns: 240px 1fr 260px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Gate -->
+    <div id="gate">
+      <div class="gate-card">
+        <h1>Backboard Chat</h1>
+        <p>Enter your credentials to connect to your assistant.</p>
+        <div class="field">
+          <label for="apiKey">API Key</label>
+          <input type="password" id="apiKey" placeholder="espr_..." autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="assistantId">Assistant ID</label>
+          <input type="text" id="assistantId" placeholder="uuid..." autocomplete="off">
+        </div>
+        <button class="btn" id="startBtn">Get Started</button>
+      </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app">
+      <div class="app-header">
+        <h1>Noto</h1>
+        <div class="app-header-actions">
+          <button class="icon-btn" id="newChatBtn" title="New chat">+</button>
+          <button class="icon-btn" id="historyBtn" title="Chat history">&#x1F553;</button>
+        </div>
+      </div>
+
+      <!-- History Panel -->
+      <div class="history-overlay" id="historyOverlay"></div>
+      <div class="history-panel" id="historyPanel">
+        <div class="history-panel-header">
+          <h2>Chat History</h2>
+          <button class="icon-btn" id="closeHistoryBtn">&times;</button>
+        </div>
+        <div class="history-panel-body" id="historyList"></div>
+      </div>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="memory-saver">Save Memory</button>
+        <button class="tab-btn" data-tab="chat">Chat</button>
+        <button class="tab-btn" data-tab="memories">Memories</button>
+      </div>
+
+      <div class="tab-panels">
+        <!-- Tab 1: Save Memory -->
+        <div class="tab-panel active" id="panel-memory-saver">
+          <div class="panel-header">Save Memory</div>
+          <div class="panel-body save-memory">
+            <textarea id="memoryInput" placeholder="Type a note to save to memory..."></textarea>
+            <button class="btn" id="saveMemoryBtn">Save to Memory</button>
+            <div class="status-msg" id="memoryStatus"></div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Chat -->
+        <div class="tab-panel" id="panel-chat">
+          <div class="chat-container">
+            <div class="panel-header">Chat</div>
+            <div class="messages" id="messages"></div>
+            <div class="chat-input-area">
+              <div class="chat-input-row">
+                <textarea id="chatInput" placeholder="Type your message..."></textarea>
+                <button class="btn" id="sendBtn">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Memories -->
+        <div class="tab-panel" id="panel-memories">
+          <div class="panel-header">
+            <span>Memories</span>
+            <button class="btn outline" id="refreshMemoriesBtn">Refresh</button>
+          </div>
+          <div class="panel-body" id="memoriesList">
+            <div class="empty-state">No memories saved yet</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="reset-link" id="resetBtn">Reset credentials</button>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = 'https://app.backboard.io/api';
+    const LS_KEY_API = 'backboard_apiKey';
+    const LS_KEY_ASST = 'backboard_assistantId';
+
+    const LS_KEY_HISTORY = 'noto_chat_history';
+
+    let apiKey = localStorage.getItem(LS_KEY_API) || '';
+    let assistantId = localStorage.getItem(LS_KEY_ASST) || '';
+    let threadId = null;
+    let currentChatId = null;
+    let chatHistory = [];
+
+    const gate = document.getElementById('gate');
+    const mainApp = document.getElementById('main-app');
+    const startBtn = document.getElementById('startBtn');
+    const apiKeyInput = document.getElementById('apiKey');
+    const assistantIdInput = document.getElementById('assistantId');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const memoryInput = document.getElementById('memoryInput');
+    const saveMemoryBtn = document.getElementById('saveMemoryBtn');
+    const memoryStatus = document.getElementById('memoryStatus');
+
+    const messagesEl = document.getElementById('messages');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    const memoriesListEl = document.getElementById('memoriesList');
+    const refreshMemoriesBtn = document.getElementById('refreshMemoriesBtn');
+
+    const newChatBtn = document.getElementById('newChatBtn');
+    const historyBtn = document.getElementById('historyBtn');
+    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+    const historyPanel = document.getElementById('historyPanel');
+    const historyOverlay = document.getElementById('historyOverlay');
+    const historyListEl = document.getElementById('historyList');
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    // Tab switching
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabPanels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + target).classList.add('active');
+      });
+    });
+
+    function showGate() {
+      gate.style.display = 'flex';
+      mainApp.style.display = 'none';
+    }
+    function showApp() {
+      gate.style.display = 'none';
+      mainApp.style.display = 'flex';
+    }
+
+    async function api(method, path, body) {
+      const opts = {
+        method,
+        headers: { 'X-API-Key': apiKey, 'Content-Type': 'application/json' }
+      };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(`${BASE_URL}${path}`, opts);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
+      if (res.status === 204) return null;
+      return res.json();
+    }
+
+    async function initThread() {
+      if (!assistantId) return;
+      try {
+        const thread = await api('POST', `/assistants/${assistantId}/threads`, {});
+        threadId = thread.thread_id;
+      } catch (e) {
+        console.error('Failed to create thread:', e);
+        addMessage('system', 'Failed to initialize chat thread. Check your credentials.');
+      }
+    }
+
+    function addMessage(role, text) {
+      const div = document.createElement('div');
+      div.className = `msg ${role}`;
+      div.textContent = text;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    async function loadMemories() {
+      try {
+        const data = await api('GET', `/assistants/${assistantId}/memories`);
+        const memories = data.memories || [];
+        memoriesListEl.innerHTML = '';
+        if (memories.length === 0) {
+          memoriesListEl.innerHTML = '<div class="empty-state">No memories saved yet</div>';
+          return;
+        }
+        for (const m of memories) {
+          const card = document.createElement('div');
+          card.className = 'memory-card';
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.innerHTML = '&times;';
+          deleteBtn.title = 'Delete memory';
+          deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!confirm('Delete this memory?')) return;
+            try {
+              await api('DELETE', `/assistants/${assistantId}/memories/${m.id}`);
+              card.remove();
+              if (!memoriesListEl.querySelector('.memory-card')) {
+                memoriesListEl.innerHTML = '<div class="empty-state">No memories saved yet</div>';
+              }
+            } catch (err) {
+              alert('Failed to delete: ' + err.message);
+            }
+          });
+
+          const editBtn = document.createElement('button');
+          editBtn.className = 'edit-btn';
+          editBtn.innerHTML = '&#9998;';
+          editBtn.title = 'Edit memory';
+          editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            contentDiv.style.display = 'none';
+            editArea.style.display = 'block';
+            editTextarea.value = m.content || m.memory || '';
+            editTextarea.focus();
+          });
+
+          const contentDiv = document.createElement('div');
+          contentDiv.className = 'content';
+          contentDiv.textContent = m.content || m.memory || '';
+
+          const editArea = document.createElement('div');
+          editArea.className = 'edit-area';
+          const editTextarea = document.createElement('textarea');
+          const editActions = document.createElement('div');
+          editActions.className = 'edit-actions';
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'btn';
+          saveBtn.textContent = 'Save';
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'btn secondary';
+          cancelBtn.textContent = 'Cancel';
+
+          saveBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const newText = editTextarea.value.trim();
+            if (!newText) return;
+            try {
+              await api('PUT', `/assistants/${assistantId}/memories/${m.id}`, { content: newText });
+              m.content = newText;
+              contentDiv.textContent = newText;
+              editArea.style.display = 'none';
+              contentDiv.style.display = '-webkit-box';
+            } catch (err) {
+              alert('Failed to save: ' + err.message);
+            }
+          });
+
+          cancelBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            editArea.style.display = 'none';
+            contentDiv.style.display = '-webkit-box';
+          });
+
+          editActions.appendChild(saveBtn);
+          editActions.appendChild(cancelBtn);
+          editArea.appendChild(editTextarea);
+          editArea.appendChild(editActions);
+
+          const tsDiv = document.createElement('div');
+          tsDiv.className = 'ts';
+          tsDiv.textContent = m.created_at ? new Date(m.created_at).toLocaleString() : '';
+          card.appendChild(deleteBtn);
+          card.appendChild(editBtn);
+          card.appendChild(contentDiv);
+          card.appendChild(editArea);
+          if (m.created_at) card.appendChild(tsDiv);
+          card.addEventListener('click', () => {
+            if (editArea.style.display === 'block') return;
+            contentDiv.classList.toggle('expanded');
+          });
+          memoriesListEl.appendChild(card);
+        }
+      } catch (e) {
+        memoriesListEl.innerHTML = `<div class="empty-state" style="color:#f87171;">Error: ${e.message}</div>`;
+      }
+    }
+
+    // Chat History
+    function loadChatHistory() {
+      try {
+        chatHistory = JSON.parse(localStorage.getItem(LS_KEY_HISTORY) || '[]');
+      } catch {
+        chatHistory = [];
+      }
+    }
+
+    function saveChatHistory() {
+      localStorage.setItem(LS_KEY_HISTORY, JSON.stringify(chatHistory));
+    }
+
+    function createNewChat() {
+      currentChatId = null;
+      threadId = null;
+      messagesEl.innerHTML = '';
+      initThread();
+    }
+
+    function saveCurrentChat() {
+      if (!currentChatId || messagesEl.children.length === 0) return;
+      const msgs = [];
+      messagesEl.querySelectorAll('.msg').forEach(el => {
+        msgs.push({ role: el.classList.contains('user') ? 'user' : el.classList.contains('assistant') ? 'assistant' : 'system', text: el.textContent });
+      });
+      const existing = chatHistory.find(c => c.id === currentChatId);
+      if (existing) {
+        existing.messages = msgs;
+        existing.lastMessage = msgs[msgs.length - 1]?.text || '';
+        existing.updatedAt = new Date().toISOString();
+      }
+      saveChatHistory();
+    }
+
+    function startNewChatFromMessage(firstMessage) {
+      currentChatId = 'chat_' + Date.now();
+      const chat = {
+        id: currentChatId,
+        title: firstMessage.slice(0, 50) + (firstMessage.length > 50 ? '...' : ''),
+        threadId: threadId,
+        messages: [{ role: 'user', text: firstMessage }],
+        lastMessage: firstMessage,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      chatHistory.unshift(chat);
+      saveChatHistory();
+    }
+
+    function addMessageToHistory(role, text) {
+      if (!currentChatId) return;
+      const chat = chatHistory.find(c => c.id === currentChatId);
+      if (chat) {
+        chat.messages.push({ role, text });
+        chat.lastMessage = text;
+        chat.updatedAt = new Date().toISOString();
+        if (role === 'user' && chat.messages.filter(m => m.role === 'user').length === 1) {
+          chat.title = text.slice(0, 50) + (text.length > 50 ? '...' : '');
+        }
+        saveChatHistory();
+      }
+    }
+
+    function loadChat(chatId) {
+      const chat = chatHistory.find(c => c.id === chatId);
+      if (!chat) return;
+      currentChatId = chat.id;
+      threadId = chat.threadId;
+      messagesEl.innerHTML = '';
+      for (const m of chat.messages) {
+        addMessage(m.role, m.text);
+      }
+      historyPanel.classList.remove('open');
+    }
+
+    function deleteChat(chatId) {
+      chatHistory = chatHistory.filter(c => c.id !== chatId);
+      saveChatHistory();
+      renderHistoryPanel();
+      if (currentChatId === chatId) {
+        createNewChat();
+      }
+    }
+
+    function renderHistoryPanel() {
+      if (chatHistory.length === 0) {
+        historyListEl.innerHTML = '<div class="empty-state">No chat history yet</div>';
+        return;
+      }
+      historyListEl.innerHTML = '';
+      for (const chat of chatHistory) {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerHTML = `
+          <div class="history-item-title">${escapeHtml(chat.title || 'Untitled')}</div>
+          <div class="history-item-meta">${chat.messages?.length || 0} messages · ${new Date(chat.updatedAt).toLocaleDateString()}</div>
+        `;
+        item.addEventListener('click', () => loadChat(chat.id));
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'history-item-delete';
+        delBtn.innerHTML = '&times;';
+        delBtn.title = 'Delete chat';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm('Delete this chat?')) deleteChat(chat.id);
+        });
+
+        item.appendChild(delBtn);
+        historyListEl.appendChild(item);
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Chat History
+    function loadChatHistory() {
+      try {
+        const stored = localStorage.getItem(LS_KEY_HISTORY);
+        chatHistory = stored ? JSON.parse(stored) : [];
+      } catch {
+        chatHistory = [];
+      }
+    }
+
+    function saveChatHistory() {
+      localStorage.setItem(LS_KEY_HISTORY, JSON.stringify(chatHistory));
+    }
+
+    function startNewChatFromMessage(firstMessage) {
+      currentChatId = 'chat_' + Date.now();
+      const newChat = {
+        id: currentChatId,
+        title: firstMessage.slice(0, 60) + (firstMessage.length > 60 ? '...' : ''),
+        messages: [],
+        threadId: threadId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      chatHistory.unshift(newChat);
+      saveChatHistory();
+    }
+
+    function addMessageToHistory(role, text) {
+      if (!currentChatId) return;
+      const chat = chatHistory.find(c => c.id === currentChatId);
+      if (!chat) return;
+      chat.messages.push({ role, text, time: Date.now() });
+      chat.updatedAt = new Date().toISOString();
+      saveChatHistory();
+    }
+
+    function createNewChat() {
+      currentChatId = null;
+      threadId = null;
+      messagesEl.innerHTML = '';
+      initThread();
+    }
+
+    function loadChat(chat) {
+      currentChatId = chat.id;
+      threadId = chat.threadId;
+      messagesEl.innerHTML = '';
+      for (const msg of chat.messages) {
+        addMessage(msg.role, msg.text);
+      }
+      closeHistoryPanel();
+    }
+
+    function deleteChat(chatId) {
+      chatHistory = chatHistory.filter(c => c.id !== chatId);
+      saveChatHistory();
+      if (currentChatId === chatId) {
+        currentChatId = null;
+        messagesEl.innerHTML = '';
+      }
+      renderHistoryPanel();
+    }
+
+    function renderHistoryPanel() {
+      historyListEl.innerHTML = '';
+      if (chatHistory.length === 0) {
+        historyListEl.innerHTML = '<div style="padding:20px;color:#777;text-align:center;">No chat history yet</div>';
+        return;
+      }
+      for (const chat of chatHistory) {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        const title = document.createElement('div');
+        title.className = 'history-item-title';
+        title.textContent = chat.title || 'Untitled chat';
+        const meta = document.createElement('div');
+        meta.className = 'history-item-meta';
+        const date = new Date(chat.updatedAt);
+        meta.textContent = `${date.toLocaleDateString()} · ${chat.messages.length} messages`;
+        const delBtn = document.createElement('button');
+        delBtn.className = 'history-item-delete';
+        delBtn.innerHTML = '&times;';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteChat(chat.id);
+        });
+        item.appendChild(title);
+        item.appendChild(meta);
+        item.appendChild(delBtn);
+        item.addEventListener('click', () => loadChat(chat));
+        historyListEl.appendChild(item);
+      }
+    }
+
+    // History panel
+    function openHistoryPanel() {
+      renderHistoryPanel();
+      historyPanel.classList.add('open');
+      historyOverlay.classList.add('open');
+    }
+    function closeHistoryPanel() {
+      historyPanel.classList.remove('open');
+      historyOverlay.classList.remove('open');
+    }
+
+    historyBtn.addEventListener('click', openHistoryPanel);
+    closeHistoryBtn.addEventListener('click', closeHistoryPanel);
+    historyOverlay.addEventListener('click', closeHistoryPanel);
+    newChatBtn.addEventListener('click', createNewChat);
+
+    // Gate
+    loadChatHistory();
+    if (apiKey && assistantId) {
+      showApp();
+      initThread();
+      loadMemories();
+    } else {
+      showGate();
+    }
+
+    startBtn.addEventListener('click', async () => {
+      const key = apiKeyInput.value.trim();
+      const asst = assistantIdInput.value.trim();
+      if (!key || !asst) {
+        alert('Please enter both API Key and Assistant ID');
+        return;
+      }
+      apiKey = key;
+      assistantId = asst;
+      localStorage.setItem(LS_KEY_API, apiKey);
+      localStorage.setItem(LS_KEY_ASST, assistantId);
+      showApp();
+      await initThread();
+      await loadMemories();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      localStorage.removeItem(LS_KEY_API);
+      localStorage.removeItem(LS_KEY_ASST);
+      apiKey = '';
+      assistantId = '';
+      threadId = null;
+      messagesEl.innerHTML = '';
+      showGate();
+    });
+
+    // Save Memory
+    saveMemoryBtn.addEventListener('click', async () => {
+      const text = memoryInput.value.trim();
+      if (!text) return;
+      memoryStatus.textContent = '';
+      memoryStatus.className = 'status-msg';
+      try {
+        await api('POST', `/assistants/${assistantId}/memories`, { content: text });
+        memoryStatus.textContent = 'Saved to memory';
+        memoryStatus.className = 'status-msg ok';
+        memoryInput.value = '';
+        await loadMemories();
+      } catch (e) {
+        memoryStatus.textContent = `Error: ${e.message}`;
+        memoryStatus.className = 'status-msg err';
+      }
+      setTimeout(() => { memoryStatus.textContent = ''; memoryStatus.className = 'status-msg'; }, 3000);
+    });
+
+    // Chat
+    async function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text || !threadId) return;
+
+      // Start a new chat if none is active
+      if (!currentChatId) {
+        startNewChatFromMessage(text);
+      }
+
+      addMessage('user', text);
+      addMessageToHistory('user', text);
+      chatInput.value = '';
+      sendBtn.disabled = true;
+      sendBtn.textContent = '...';
+      try {
+        const res = await api('POST', `/threads/${threadId}/messages`, {
+          content: text,
+          stream: false,
+          memory: 'Auto'
+        });
+        const reply = res.content || res.message || JSON.stringify(res);
+        addMessage('assistant', reply);
+        addMessageToHistory('assistant', reply);
+      } catch (e) {
+        addMessage('assistant', `Error: ${e.message}`);
+        addMessageToHistory('assistant', `Error: ${e.message}`);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send';
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Refresh memories
+    refreshMemoriesBtn.addEventListener('click', loadMemories);
+  </script>
+</body>
+</html>
