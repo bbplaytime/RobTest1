@@ -268,8 +268,32 @@
       margin-bottom: 10px;
       cursor: pointer;
       transition: border-color 0.2s;
+      position: relative;
+      padding-right: 34px;
     }
     .memory-card:hover { border-color: #7c6af7; }
+    .memory-card .delete-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #666;
+      font-size: 0.85rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .memory-card .delete-btn:hover {
+      background: #f87171;
+      color: #fff;
+    }
     .memory-card .content {
       font-size: 0.9rem;
       line-height: 1.4;
@@ -510,12 +534,32 @@
         for (const m of memories) {
           const card = document.createElement('div');
           card.className = 'memory-card';
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.innerHTML = '&times;';
+          deleteBtn.title = 'Delete memory';
+          deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!confirm('Delete this memory?')) return;
+            try {
+              await api('DELETE', `/assistants/${assistantId}/memories/${m.id}`);
+              card.remove();
+              if (!memoriesListEl.querySelector('.memory-card')) {
+                memoriesListEl.innerHTML = '<div class="empty-state">No memories saved yet</div>';
+              }
+            } catch (err) {
+              alert('Failed to delete: ' + err.message);
+            }
+          });
+
           const contentDiv = document.createElement('div');
           contentDiv.className = 'content';
           contentDiv.textContent = m.content || m.memory || '';
           const tsDiv = document.createElement('div');
           tsDiv.className = 'ts';
           tsDiv.textContent = m.created_at ? new Date(m.created_at).toLocaleString() : '';
+          card.appendChild(deleteBtn);
           card.appendChild(contentDiv);
           if (m.created_at) card.appendChild(tsDiv);
           card.addEventListener('click', () => contentDiv.classList.toggle('expanded'));
