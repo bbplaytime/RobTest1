@@ -287,7 +287,7 @@
     .panel-body::-webkit-scrollbar-track { background: transparent; }
     .panel-body::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
 
-    /* Save Memory Tab */
+    /* Save Notes Tab */
     .save-memory textarea {
       width: 100%;
       min-height: 160px;
@@ -388,7 +388,7 @@
     .chat-input-row textarea:focus { border-color: #7c6af7; }
     .chat-input-row .btn { width: auto; padding: 0 24px; }
 
-    /* Memories Tab */
+    /* Notes Tab */
     .memory-card {
       background: #333;
       border: 1px solid #3a3a3a;
@@ -601,18 +601,18 @@
       </div>
 
       <div class="tab-bar">
-        <button class="tab-btn active" data-tab="memory-saver">Save Memory</button>
+        <button class="tab-btn active" data-tab="memory-saver">Save Notes</button>
         <button class="tab-btn" data-tab="chat">Chat</button>
-        <button class="tab-btn" data-tab="memories">Memories</button>
+        <button class="tab-btn" data-tab="memories">Notes</button>
       </div>
 
       <div class="tab-panels">
-        <!-- Tab 1: Save Memory -->
+        <!-- Tab 1: Save Notes -->
         <div class="tab-panel active" id="panel-memory-saver">
-          <div class="panel-header">Save Memory</div>
+          <div class="panel-header">Save Notes</div>
           <div class="panel-body save-memory">
-            <textarea id="memoryInput" placeholder="Type a note to save to memory..."></textarea>
-            <button class="btn" id="saveMemoryBtn">Save to Memory</button>
+            <textarea id="memoryInput" placeholder="Type a note to save..."></textarea>
+            <button class="btn" id="saveNotesBtn">Save to Notes</button>
             <div class="status-msg" id="memoryStatus"></div>
           </div>
         </div>
@@ -631,14 +631,14 @@
           </div>
         </div>
 
-        <!-- Tab 3: Memories -->
+        <!-- Tab 3: Notes -->
         <div class="tab-panel" id="panel-memories">
           <div class="panel-header">
-            <span>Memories</span>
-            <button class="btn outline" id="refreshMemoriesBtn">Refresh</button>
+            <span>Notes</span>
+            <button class="btn outline" id="refreshNotesBtn">Refresh</button>
           </div>
           <div class="panel-body" id="memoriesList">
-            <div class="empty-state">No memories saved yet</div>
+            <div class="empty-state">No notes saved yet</div>
           </div>
         </div>
       </div>
@@ -668,7 +668,7 @@
     const resetBtn = document.getElementById('resetBtn');
 
     const memoryInput = document.getElementById('memoryInput');
-    const saveMemoryBtn = document.getElementById('saveMemoryBtn');
+    const saveNotesBtn = document.getElementById('saveNotesBtn');
     const memoryStatus = document.getElementById('memoryStatus');
 
     const messagesEl = document.getElementById('messages');
@@ -676,7 +676,7 @@
     const sendBtn = document.getElementById('sendBtn');
 
     const memoriesListEl = document.getElementById('memoriesList');
-    const refreshMemoriesBtn = document.getElementById('refreshMemoriesBtn');
+    const refreshNotesBtn = document.getElementById('refreshNotesBtn');
 
     const newChatBtn = document.getElementById('newChatBtn');
     const historyBtn = document.getElementById('historyBtn');
@@ -742,13 +742,13 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    async function loadMemories() {
+    async function loadNotes() {
       try {
         const data = await api('GET', `/assistants/${assistantId}/memories`);
         const memories = data.memories || [];
         memoriesListEl.innerHTML = '';
         if (memories.length === 0) {
-          memoriesListEl.innerHTML = '<div class="empty-state">No memories saved yet</div>';
+          memoriesListEl.innerHTML = '<div class="empty-state">No notes saved yet</div>';
           return;
         }
         for (const m of memories) {
@@ -758,15 +758,15 @@
           const deleteBtn = document.createElement('button');
           deleteBtn.className = 'delete-btn';
           deleteBtn.innerHTML = '&times;';
-          deleteBtn.title = 'Delete memory';
+          deleteBtn.title = 'Delete note';
           deleteBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            if (!confirm('Delete this memory?')) return;
+            if (!confirm('Delete this note?')) return;
             try {
               await api('DELETE', `/assistants/${assistantId}/memories/${m.id}`);
               card.remove();
               if (!memoriesListEl.querySelector('.memory-card')) {
-                memoriesListEl.innerHTML = '<div class="empty-state">No memories saved yet</div>';
+                memoriesListEl.innerHTML = '<div class="empty-state">No notes saved yet</div>';
               }
             } catch (err) {
               alert('Failed to delete: ' + err.message);
@@ -776,7 +776,7 @@
           const editBtn = document.createElement('button');
           editBtn.className = 'edit-btn';
           editBtn.innerHTML = '&#9998;';
-          editBtn.title = 'Edit memory';
+          editBtn.title = 'Edit note';
           editBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             contentDiv.style.display = 'none';
@@ -1082,7 +1082,7 @@
     if (apiKey && assistantId) {
       showApp();
       initThread();
-      loadMemories();
+      loadNotes();
     } else {
       showGate();
     }
@@ -1100,7 +1100,7 @@
       localStorage.setItem(LS_KEY_ASST, assistantId);
       showApp();
       await initThread();
-      await loadMemories();
+      await loadNotes();
     });
 
     resetBtn.addEventListener('click', () => {
@@ -1113,18 +1113,18 @@
       showGate();
     });
 
-    // Save Memory
-    saveMemoryBtn.addEventListener('click', async () => {
+    // Save Notes
+    saveNotesBtn.addEventListener('click', async () => {
       const text = memoryInput.value.trim();
       if (!text) return;
       memoryStatus.textContent = '';
       memoryStatus.className = 'status-msg';
       try {
         await api('POST', `/assistants/${assistantId}/memories`, { content: text });
-        memoryStatus.textContent = 'Saved to memory';
+        memoryStatus.textContent = 'Saved to notes';
         memoryStatus.className = 'status-msg ok';
         memoryInput.value = '';
-        await loadMemories();
+        await loadNotes();
       } catch (e) {
         memoryStatus.textContent = `Error: ${e.message}`;
         memoryStatus.className = 'status-msg err';
@@ -1174,7 +1174,7 @@
     });
 
     // Refresh memories
-    refreshMemoriesBtn.addEventListener('click', loadMemories);
+    refreshNotesBtn.addEventListener('click', loadNotes);
   </script>
 </body>
 </html>
