@@ -829,12 +829,15 @@
 
           const tsDiv = document.createElement('div');
           tsDiv.className = 'ts';
-          tsDiv.textContent = m.created_at ? new Date(m.created_at).toLocaleString() : '';
+          const dateField = m.created_at || m.created || m.timestamp;
+          tsDiv.textContent = dateField ? new Date(dateField).toLocaleString(undefined, {
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          }) : '';
           card.appendChild(deleteBtn);
           card.appendChild(editBtn);
           card.appendChild(contentDiv);
           card.appendChild(editArea);
-          if (m.created_at) card.appendChild(tsDiv);
+          if (dateField) card.appendChild(tsDiv);
           card.addEventListener('click', () => {
             if (editArea.style.display === 'block') return;
             contentDiv.classList.toggle('expanded');
