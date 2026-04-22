@@ -1414,7 +1414,17 @@
     loadChatHistory();
     if (apiKey && assistantId) {
       showApp();
-      initThread();
+      if (chatHistory.length > 0) {
+        // Restore the most recent chat and its thread
+        const recent = chatHistory[0];
+        currentChatId = recent.id;
+        threadId = recent.threadId;
+        for (const msg of recent.messages) {
+          addMessage(msg.role, msg.text);
+        }
+      } else {
+        createNewChat();
+      }
       loadNotes();
     } else {
       showGate();
