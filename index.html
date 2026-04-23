@@ -881,6 +881,8 @@
                   <button class="memory-toggle-btn" data-mode="Read-only">Read-only</button>
                   <button class="memory-toggle-btn active" data-mode="Auto">Auto</button>
                 </div>
+                <span style="font-size:0.75rem; color:var(--noto-text-muted); margin-left:6px;">Web:</span>
+                <button class="icon-btn" id="webSearchToggle" title="Toggle web search" style="width:28px;height:28px;font-size:0.8rem;">&#x1F310;</button>
               </div>
             </div>
           </div>
@@ -916,6 +918,7 @@
     let threadId = null;
     let currentChatId = null;
     let memoryMode = 'Auto';
+    let webSearchEnabled = false;
 
     function getNoteTags() {
       try { return JSON.parse(localStorage.getItem(LS_KEY_TAGS) || '{}'); }
@@ -1457,7 +1460,8 @@
         const res = await api('POST', `/threads/${threadId}/messages`, {
           content: text,
           stream: false,
-          memory: memoryMode
+          memory: memoryMode,
+          web_search: webSearchEnabled
         });
         const reply = res.content || res.message || JSON.stringify(res);
         addMessage('assistant', reply);
@@ -1487,6 +1491,15 @@
         btn.classList.add('active');
         memoryMode = btn.dataset.mode;
       });
+    });
+
+    // Web search toggle
+    const webSearchToggle = document.getElementById('webSearchToggle');
+    webSearchToggle.addEventListener('click', () => {
+      webSearchEnabled = !webSearchEnabled;
+      webSearchToggle.style.borderColor = webSearchEnabled ? 'var(--noto-accent)' : 'var(--noto-border)';
+      webSearchToggle.style.color = webSearchEnabled ? 'var(--noto-accent)' : 'var(--noto-text-secondary)';
+      webSearchToggle.style.background = webSearchEnabled ? 'var(--noto-tag-bg)' : 'transparent';
     });
 
     // Refresh memories
