@@ -764,21 +764,6 @@
       margin-top: 40px;
     }
 
-    /* Reset link */
-    .reset-link {
-      position: fixed;
-      bottom: 10px;
-      right: 12px;
-      font-size: 0.75rem;
-      color: var(--noto-text-muted);
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      z-index: 100;
-      font-family: inherit;
-    }
-    .reset-link:hover { color: var(--noto-text-secondary); text-decoration: underline; }
-
     /* Responsive */
     @media (min-width: 768px) {
       .tab-bar { display: none; }
@@ -800,11 +785,6 @@
       }
       .tab-panel .panel-header {
         border-radius: 10px 10px 0 0;
-      }
-      /* Reset link position in desktop */
-      .reset-link {
-        bottom: 6px;
-        right: 6px;
       }
       .app-header {
         border-radius: 10px;
@@ -867,6 +847,13 @@
           <button class="icon-btn" id="closeSettingsBtn">&times;</button>
         </div>
         <div class="settings-modal-body">
+          <div class="settings-section">
+            <label class="settings-label">Reset Credentials</label>
+            <div class="settings-hint">Clear your saved API key and Assistant ID. This will log you out and return you to the login screen.</div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn outline" id="resetCredentialsBtn">Reset Credentials</button>
+          </div>
           <div class="settings-section">
             <label class="settings-label">System Prompt</label>
             <textarea id="systemPromptInput" placeholder="Enter a system prompt to customize the assistant's behavior..."></textarea>
@@ -939,8 +926,6 @@
           </div>
         </div>
       </div>
-
-      <button class="reset-link" id="resetBtn">Reset credentials</button>
     </div>
   </div>
 
@@ -973,7 +958,7 @@
     const startBtn = document.getElementById('startBtn');
     const apiKeyInput = document.getElementById('apiKey');
     const assistantIdInput = document.getElementById('assistantId');
-    const resetBtn = document.getElementById('resetBtn');
+    const resetCredentialsBtn = document.getElementById('resetCredentialsBtn');
 
     const memoryInput = document.getElementById('memoryInput');
     const saveNotesBtn = document.getElementById('saveNotesBtn');
@@ -1442,7 +1427,7 @@
       await loadNotes();
     });
 
-    resetBtn.addEventListener('click', () => {
+    resetCredentialsBtn.addEventListener('click', () => {
       localStorage.removeItem(LS_KEY_API);
       localStorage.removeItem(LS_KEY_ASST);
       apiKey = '';
