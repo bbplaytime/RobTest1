@@ -544,6 +544,40 @@
       color: var(--noto-on-accent);
     }
 
+    /* Chat toolbar bar */
+    .chat-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 6px 12px;
+      background: var(--noto-surface-inset);
+      border: 1px solid var(--noto-border-subtle);
+      border-radius: 10px;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .toolbar-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--noto-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      user-select: none;
+    }
+    .toolbar-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--noto-border-subtle);
+    }
+
     /* Notes Tab */
     .memory-card {
       background: var(--noto-surface-inset);
@@ -874,15 +908,20 @@
                 <textarea id="chatInput" placeholder="Type your message..."></textarea>
                 <button class="btn" id="sendBtn">Send</button>
               </div>
-              <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px;">
-                <span style="font-size:0.75rem; color:var(--noto-text-muted);">Memory:</span>
-                <div class="memory-toggle" id="memoryToggle">
-                  <button class="memory-toggle-btn" data-mode="Off">Off</button>
-                  <button class="memory-toggle-btn" data-mode="Read-only">Read-only</button>
-                  <button class="memory-toggle-btn active" data-mode="Auto">Auto</button>
+              <div class="chat-toolbar">
+                <div class="toolbar-group">
+                  <span class="toolbar-label">Memory</span>
+                  <div class="memory-toggle" id="memoryToggle">
+                    <button class="memory-toggle-btn" data-mode="Off">Off</button>
+                    <button class="memory-toggle-btn" data-mode="Read-only">Read-only</button>
+                    <button class="memory-toggle-btn active" data-mode="Auto">Auto</button>
+                  </div>
                 </div>
-                <span style="font-size:0.75rem; color:var(--noto-text-muted); margin-left:6px;">Web:</span>
-                <button class="icon-btn" id="webSearchToggle" title="Toggle web search" style="width:28px;height:28px;font-size:0.8rem;">&#x1F310;</button>
+                <div class="toolbar-divider"></div>
+                <div class="toolbar-group">
+                  <span class="toolbar-label">Web</span>
+                  <button class="icon-btn" id="webSearchToggle" title="Toggle web search" style="width:28px;height:28px;font-size:0.8rem;">&#x1F310;</button>
+                </div>
               </div>
             </div>
           </div>
