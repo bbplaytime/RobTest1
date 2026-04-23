@@ -104,6 +104,197 @@
     }
     .btn.outline:hover { border-color: var(--noto-accent); color: var(--noto-text); }
 
+    /* Assistant Selector (Gate) */
+    .assistant-selector { position: relative; text-align: left; }
+    .assistant-select-btn {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--noto-surface-inset);
+      border: 1px solid var(--noto-border);
+      border-radius: 8px;
+      color: var(--noto-text);
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.15s;
+    }
+    .assistant-select-btn:hover { border-color: var(--noto-accent); }
+    .assistant-select-btn .chevron { font-size: 0.7rem; color: var(--noto-text-secondary); }
+    .assistant-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: var(--noto-surface-raised);
+      border: 1px solid var(--noto-border);
+      border-radius: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .assistant-dropdown.open { display: block; }
+    .assistant-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      gap: 8px;
+    }
+    .assistant-item:hover { background: var(--noto-surface-inset); }
+    .assistant-item .asst-info { min-width: 0; }
+    .assistant-item .asst-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--noto-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .assistant-item .asst-id {
+      font-size: 0.75rem;
+      color: var(--noto-text-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .assistant-item .del {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--noto-text-muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .assistant-item:hover .del { opacity: 1; }
+    .assistant-item .del:hover { background: var(--noto-error); color: var(--noto-on-accent); }
+    .assistant-item.add-new {
+      border-top: 1px solid var(--noto-border-subtle);
+      color: var(--noto-accent);
+      font-weight: 500;
+      justify-content: center;
+    }
+    .assistant-item.add-new:hover { background: var(--noto-tag-bg); }
+    .assistant-form { display: none; margin-top: 12px; text-align: left; }
+    .assistant-form .field { margin-bottom: 10px; }
+    .assistant-form .field:last-child { margin-bottom: 0; }
+    .assistant-form .field input {
+      font-size: 0.9rem;
+      padding: 8px 10px;
+    }
+    .assistant-form .form-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .assistant-form .form-actions .btn { padding: 8px 14px; font-size: 0.85rem; }
+    .assistant-form .form-actions .btn.outline { flex: 1; }
+
+    /* App Header Assistant Switcher */
+    .app-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .app-header-left h1 { flex-shrink: 0; }
+    .assistant-switcher { position: relative; }
+    .assistant-switcher-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--noto-surface-inset);
+      border: 1px solid var(--noto-border);
+      border-radius: 8px;
+      color: var(--noto-text-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      max-width: 180px;
+    }
+    .assistant-switcher-btn:hover { border-color: var(--noto-accent); color: var(--noto-text); }
+    .assistant-switcher-btn .asst-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .assistant-switcher-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 220px;
+      max-width: 280px;
+      background: var(--noto-surface-raised);
+      border: 1px solid var(--noto-border);
+      border-radius: 8px;
+      z-index: 50;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+    .assistant-switcher-dropdown.open { display: block; }
+    .assistant-switcher-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      gap: 8px;
+    }
+    .assistant-switcher-item:hover { background: var(--noto-surface-inset); }
+    .assistant-switcher-item.active { background: var(--noto-tag-bg); }
+    .assistant-switcher-item .asst-info { min-width: 0; }
+    .assistant-switcher-item .asst-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--noto-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .assistant-switcher-item .asst-id {
+      font-size: 0.7rem;
+      color: var(--noto-text-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .assistant-switcher-item .del {
+      width: 20px; height: 20px;
+      border-radius: 5px;
+      border: none;
+      background: transparent;
+      color: var(--noto-text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .assistant-switcher-item:hover .del { opacity: 1; }
+    .assistant-switcher-item .del:hover { background: var(--noto-error); color: var(--noto-on-accent); }
+    .assistant-switcher-item.add-new {
+      border-top: 1px solid var(--noto-border-subtle);
+      color: var(--noto-accent);
+      font-weight: 500;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+    .assistant-switcher-item.add-new:hover { background: var(--noto-tag-bg); }
+    @media (max-width: 480px) {
+      .assistant-switcher-btn { max-width: 120px; }
+    }
+
     /* Main App */
     #main-app {
       display: none;
@@ -805,23 +996,48 @@
     <div id="gate">
       <div class="gate-card">
         <h1>Backboard Chat</h1>
-        <p>Enter your credentials to connect to your assistant.</p>
+        <p>Choose an assistant or add a new one to get started.</p>
         <div class="field">
-          <label for="apiKey">API Key</label>
-          <input type="password" id="apiKey" placeholder="espr_..." autocomplete="off">
+          <label>Your Assistants</label>
+          <div class="assistant-selector" id="gateAssistantSelector">
+            <button class="assistant-select-btn" id="gateSelectBtn" type="button">
+              <span id="gateSelectedLabel">Select assistant...</span>
+              <span class="chevron">&#9662;</span>
+            </button>
+            <div class="assistant-dropdown" id="gateDropdown"></div>
+          </div>
         </div>
-        <div class="field">
-          <label for="assistantId">Assistant ID</label>
-          <input type="text" id="assistantId" placeholder="uuid..." autocomplete="off">
+        <div class="assistant-form" id="gateAssistantForm">
+          <div class="field">
+            <label for="apiKey">API Key</label>
+            <input type="password" id="apiKey" placeholder="espr_..." autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="assistantId">Assistant ID</label>
+            <input type="text" id="assistantId" placeholder="uuid..." autocomplete="off">
+          </div>
+          <div class="form-actions">
+            <button class="btn outline" id="gateCancelBtn" type="button">Cancel</button>
+            <button class="btn" id="startBtn" type="button">Add &amp; Start</button>
+          </div>
         </div>
-        <button class="btn" id="startBtn">Get Started</button>
+        <button class="btn" id="gateStartBtn" type="button" style="margin-top: 8px;">Get Started</button>
       </div>
     </div>
 
     <!-- Main App -->
     <div id="main-app">
       <div class="app-header">
-        <h1>Noto</h1>
+        <div class="app-header-left">
+          <h1>Noto</h1>
+          <div class="assistant-switcher">
+            <button class="assistant-switcher-btn" id="appSwitcherBtn" type="button">
+              <span class="asst-label" id="appSwitcherLabel">Select assistant...</span>
+              <span class="chevron">&#9662;</span>
+            </button>
+            <div class="assistant-switcher-dropdown" id="appSwitcherDropdown"></div>
+          </div>
+        </div>
         <div class="app-header-actions">
           <button class="icon-btn" id="newChatBtn" title="New chat">+</button>
           <button class="icon-btn" id="historyBtn" title="Chat history">&#x1F553;</button>
@@ -987,6 +1203,224 @@
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
     const resetPromptBtn = document.getElementById('resetPromptBtn');
     const settingsStatus = document.getElementById('settingsStatus');
+
+    // Assistant management
+    const LS_KEY_ASSISTANTS = 'backboard_assistants';
+    let assistants = [];
+
+    function loadAssistants() {
+      try { assistants = JSON.parse(localStorage.getItem(LS_KEY_ASSISTANTS) || '[]'); }
+      catch { assistants = []; }
+    }
+    function saveAssistants() {
+      localStorage.setItem(LS_KEY_ASSISTANTS, JSON.stringify(assistants));
+    }
+    function getAssistantLabel(a) {
+      if (!a) return 'Select assistant...';
+      return a.name || 'Untitled';
+    }
+    function addAssistant(name, apiKey, assistantId) {
+      const existing = assistants.findIndex(x => x.assistantId === assistantId);
+      if (existing >= 0) {
+        assistants[existing] = { name: name || assistants[existing].name || 'Untitled', apiKey, assistantId };
+      } else {
+        assistants.push({ name: name || 'Untitled', apiKey, assistantId });
+      }
+      saveAssistants();
+    }
+    function removeAssistant(assistantId) {
+      assistants = assistants.filter(a => a.assistantId !== assistantId);
+      saveAssistants();
+    }
+
+    // Gate selector DOM
+    const gateSelectBtn = document.getElementById('gateSelectBtn');
+    const gateDropdown = document.getElementById('gateDropdown');
+    const gateSelectedLabel = document.getElementById('gateSelectedLabel');
+    const gateAssistantForm = document.getElementById('gateAssistantForm');
+    const gateCancelBtn = document.getElementById('gateCancelBtn');
+    const gateStartBtn = document.getElementById('gateStartBtn');
+
+    // App header switcher DOM
+    const appSwitcherBtn = document.getElementById('appSwitcherBtn');
+    const appSwitcherLabel = document.getElementById('appSwitcherLabel');
+    const appSwitcherDropdown = document.getElementById('appSwitcherDropdown');
+
+    function renderGateDropdown() {
+      gateDropdown.innerHTML = '';
+      if (assistants.length === 0) {
+        gateDropdown.innerHTML = '<div style="padding:12px;color:var(--noto-text-muted);font-size:0.85rem;text-align:center;">No assistants saved yet</div>';
+      } else {
+        assistants.forEach(a => {
+          const item = document.createElement('div');
+          item.className = 'assistant-item';
+          item.innerHTML = `
+            <div class="asst-info">
+              <div class="asst-name">${escapeHtml(a.name || 'Untitled')}</div>
+              <div class="asst-id">${escapeHtml(a.assistantId)}</div>
+            </div>
+            <button class="del" title="Remove">&times;</button>
+          `;
+          item.addEventListener('click', (e) => {
+            if (e.target.closest('.del')) {
+              e.stopPropagation();
+              removeAssistant(a.assistantId);
+              if (assistantId === a.assistantId) {
+                assistantId = '';
+                apiKey = '';
+                localStorage.removeItem(LS_KEY_API);
+                localStorage.removeItem(LS_KEY_ASST);
+              }
+              renderGateDropdown();
+              gateSelectedLabel.textContent = 'Select assistant...';
+              gateStartBtn.style.display = 'block';
+              return;
+            }
+            apiKey = a.apiKey;
+            assistantId = a.assistantId;
+            gateSelectedLabel.textContent = getAssistantLabel(a);
+            gateDropdown.classList.remove('open');
+            gateStartBtn.style.display = 'block';
+          });
+          gateDropdown.appendChild(item);
+        });
+      }
+      const addNew = document.createElement('div');
+      addNew.className = 'assistant-item add-new';
+      addNew.textContent = '+ Add new assistant';
+      addNew.addEventListener('click', () => {
+        gateDropdown.classList.remove('open');
+        gateAssistantForm.style.display = 'block';
+        gateStartBtn.style.display = 'none';
+        gateSelectedLabel.textContent = 'New assistant';
+        apiKeyInput.value = '';
+        assistantIdInput.value = '';
+        apiKeyInput.focus();
+      });
+      gateDropdown.appendChild(addNew);
+    }
+
+    function renderAppSwitcher() {
+      appSwitcherDropdown.innerHTML = '';
+      assistants.forEach(a => {
+        const item = document.createElement('div');
+        item.className = 'assistant-switcher-item' + (a.assistantId === assistantId ? ' active' : '');
+        item.innerHTML = `
+          <div class="asst-info">
+            <div class="asst-name">${escapeHtml(a.name || 'Untitled')}</div>
+            <div class="asst-id">${escapeHtml(a.assistantId)}</div>
+          </div>
+          <button class="del" title="Remove">&times;</button>
+        `;
+        item.addEventListener('click', async (e) => {
+          if (e.target.closest('.del')) {
+            e.stopPropagation();
+            if (assistants.length <= 1) {
+              alert('You must keep at least one assistant. Use Reset Credentials to log out fully.');
+              return;
+            }
+            removeAssistant(a.assistantId);
+            if (assistantId === a.assistantId) {
+              // Switch to the first remaining
+              const first = assistants[0];
+              await switchToAssistant(first);
+            }
+            renderAppSwitcher();
+            return;
+          }
+          if (a.assistantId === assistantId) {
+            appSwitcherDropdown.classList.remove('open');
+            return;
+          }
+          await switchToAssistant(a);
+          appSwitcherDropdown.classList.remove('open');
+        });
+        appSwitcherDropdown.appendChild(item);
+      });
+      const addNew = document.createElement('div');
+      addNew.className = 'assistant-switcher-item add-new';
+      addNew.textContent = '+ Add assistant';
+      addNew.addEventListener('click', () => {
+        appSwitcherDropdown.classList.remove('open');
+        // Show gate with form open
+        gateSelectedLabel.textContent = 'New assistant';
+        gateAssistantForm.style.display = 'block';
+        gateStartBtn.style.display = 'none';
+        apiKeyInput.value = '';
+        assistantIdInput.value = '';
+        showGate();
+        apiKeyInput.focus();
+      });
+      appSwitcherDropdown.appendChild(addNew);
+      appSwitcherLabel.textContent = getAssistantLabel(assistants.find(a => a.assistantId === assistantId));
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function switchToAssistant(a) {
+      apiKey = a.apiKey;
+      assistantId = a.assistantId;
+      localStorage.setItem(LS_KEY_API, apiKey);
+      localStorage.setItem(LS_KEY_ASST, assistantId);
+      threadId = null;
+      currentChatId = null;
+      messagesEl.innerHTML = '';
+      appSwitcherLabel.textContent = getAssistantLabel(a);
+      renderAppSwitcher();
+      await loadChatHistory();
+      if (chatHistory.length > 0) {
+        const recent = chatHistory[0];
+        currentChatId = recent.id;
+        threadId = recent.threadId;
+        for (const msg of recent.messages) {
+          addMessage(msg.role, msg.text);
+        }
+      } else {
+        await initThread();
+      }
+      loadNotes();
+    }
+
+    // Dropdown toggles
+    gateSelectBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      renderGateDropdown();
+      gateDropdown.classList.toggle('open');
+    });
+    gateCancelBtn.addEventListener('click', () => {
+      gateAssistantForm.style.display = 'none';
+      gateStartBtn.style.display = 'block';
+      gateSelectedLabel.textContent = 'Select assistant...';
+    });
+
+    appSwitcherBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      renderAppSwitcher();
+      appSwitcherDropdown.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!gateDropdown.contains(e.target) && !gateSelectBtn.contains(e.target)) {
+        gateDropdown.classList.remove('open');
+      }
+      if (!appSwitcherDropdown.contains(e.target) && !appSwitcherBtn.contains(e.target)) {
+        appSwitcherDropdown.classList.remove('open');
+      }
+    });
+
+    // Gate start button: start with selected assistant
+    gateStartBtn.addEventListener('click', async () => {
+      if (!assistantId || !apiKey) {
+        alert('Please select or add an assistant first.');
+        return;
+      }
+      showApp();
+      await initThread();
+      await loadNotes();
+    });
 
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabPanels = document.querySelectorAll('.tab-panel');
@@ -1391,11 +1825,18 @@
 
     // Gate
     (async () => {
-      await loadChatHistory();
-      if (apiKey && assistantId) {
+      loadAssistants();
+      // If we have a single saved assistant and no explicit key, seed from it
+      const savedApiKey = localStorage.getItem(LS_KEY_API);
+      const savedAsstId = localStorage.getItem(LS_KEY_ASST);
+      if (savedApiKey && savedAsstId) {
+        apiKey = savedApiKey;
+        assistantId = savedAsstId;
+        addAssistant(null, apiKey, assistantId);
+        await loadChatHistory();
         showApp();
+        appSwitcherLabel.textContent = getAssistantLabel(assistants.find(a => a.assistantId === assistantId));
         if (chatHistory.length > 0) {
-          // Restore the most recent chat and its thread
           const recent = chatHistory[0];
           currentChatId = recent.id;
           threadId = recent.threadId;
@@ -1408,9 +1849,11 @@
         loadNotes();
       } else {
         showGate();
+        renderGateDropdown();
       }
     })();
 
+    // Add assistant from gate form
     startBtn.addEventListener('click', async () => {
       const key = apiKeyInput.value.trim();
       const asst = assistantIdInput.value.trim();
@@ -1420,8 +1863,11 @@
       }
       apiKey = key;
       assistantId = asst;
+      addAssistant(null, apiKey, assistantId);
       localStorage.setItem(LS_KEY_API, apiKey);
       localStorage.setItem(LS_KEY_ASST, assistantId);
+      gateAssistantForm.style.display = 'none';
+      gateSelectedLabel.textContent = getAssistantLabel({ assistantId });
       showApp();
       await initThread();
       await loadNotes();
@@ -1430,11 +1876,18 @@
     resetCredentialsBtn.addEventListener('click', () => {
       localStorage.removeItem(LS_KEY_API);
       localStorage.removeItem(LS_KEY_ASST);
+      localStorage.removeItem(LS_KEY_ASSISTANTS);
       apiKey = '';
       assistantId = '';
+      assistants = [];
       threadId = null;
       messagesEl.innerHTML = '';
+      closeSettingsModal();
       showGate();
+      gateSelectedLabel.textContent = 'Select assistant...';
+      gateStartBtn.style.display = 'block';
+      gateAssistantForm.style.display = 'none';
+      renderGateDropdown();
     });
 
     // Save Notes
