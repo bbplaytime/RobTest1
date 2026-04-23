@@ -517,6 +517,33 @@
     .chat-input-row textarea:focus { border-color: var(--noto-accent); }
     .chat-input-row .btn { width: auto; padding: 10px 24px; }
 
+    /* Memory mode toggle */
+    .memory-toggle {
+      display: inline-flex;
+      background: var(--noto-surface-inset);
+      border: 1px solid var(--noto-border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .memory-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--noto-text-secondary);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .memory-toggle-btn:hover { color: var(--noto-text); }
+    .memory-toggle-btn.active {
+      background: var(--noto-accent);
+      color: var(--noto-on-accent);
+    }
+
     /* Notes Tab */
     .memory-card {
       background: var(--noto-surface-inset);
@@ -847,6 +874,14 @@
                 <textarea id="chatInput" placeholder="Type your message..."></textarea>
                 <button class="btn" id="sendBtn">Send</button>
               </div>
+              <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px;">
+                <span style="font-size:0.75rem; color:var(--noto-text-muted);">Memory:</span>
+                <div class="memory-toggle" id="memoryToggle">
+                  <button class="memory-toggle-btn" data-mode="Off">Off</button>
+                  <button class="memory-toggle-btn" data-mode="Read-only">Read-only</button>
+                  <button class="memory-toggle-btn active" data-mode="Auto">Auto</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -880,6 +915,7 @@
     let assistantId = localStorage.getItem(LS_KEY_ASST) || '';
     let threadId = null;
     let currentChatId = null;
+    let memoryMode = 'Auto';
 
     function getNoteTags() {
       try { return JSON.parse(localStorage.getItem(LS_KEY_TAGS) || '{}'); }
@@ -1421,7 +1457,7 @@
         const res = await api('POST', `/threads/${threadId}/messages`, {
           content: text,
           stream: false,
-          memory: 'Auto'
+          memory: memoryMode
         });
         const reply = res.content || res.message || JSON.stringify(res);
         addMessage('assistant', reply);
@@ -1441,6 +1477,16 @@
         e.preventDefault();
         sendMessage();
       }
+    });
+
+    // Memory mode toggle
+    const memoryToggleBtns = document.querySelectorAll('.memory-toggle-btn');
+    memoryToggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        memoryToggleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        memoryMode = btn.dataset.mode;
+      });
     });
 
     // Refresh memories
