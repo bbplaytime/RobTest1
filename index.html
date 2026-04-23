@@ -1151,137 +1151,33 @@
     }
 
     // Chat History
-    function loadChatHistory() {
+    async function loadChatHistory() {
+      chatHistory = [];
+      if (!assistantId) return;
       try {
-        chatHistory = JSON.parse(localStorage.getItem(LS_KEY_HISTORY) || '[]');
-      } catch {
-        chatHistory = [];
-      }
-    }
-
-    function saveChatHistory() {
-      localStorage.setItem(LS_KEY_HISTORY, JSON.stringify(chatHistory));
-    }
-
-    function createNewChat() {
-      currentChatId = null;
-      threadId = null;
-      messagesEl.innerHTML = '';
-      initThread();
-    }
-
-    function saveCurrentChat() {
-      if (!currentChatId || messagesEl.children.length === 0) return;
-      const msgs = [];
-      messagesEl.querySelectorAll('.msg').forEach(el => {
-        msgs.push({ role: el.classList.contains('user') ? 'user' : el.classList.contains('assistant') ? 'assistant' : 'system', text: el.textContent });
-      });
-      const existing = chatHistory.find(c => c.id === currentChatId);
-      if (existing) {
-        existing.messages = msgs;
-        existing.lastMessage = msgs[msgs.length - 1]?.text || '';
-        existing.updatedAt = new Date().toISOString();
-      }
-      saveChatHistory();
-    }
-
-    function startNewChatFromMessage(firstMessage) {
-      currentChatId = 'chat_' + Date.now();
-      const chat = {
-        id: currentChatId,
-        title: firstMessage.slice(0, 50) + (firstMessage.length > 50 ? '...' : ''),
-        threadId: threadId,
-        messages: [{ role: 'user', text: firstMessage }],
-        lastMessage: firstMessage,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      chatHistory.unshift(chat);
-      saveChatHistory();
-    }
-
-    function addMessageToHistory(role, text) {
-      if (!currentChatId) return;
-      const chat = chatHistory.find(c => c.id === currentChatId);
-      if (chat) {
-        chat.messages.push({ role, text });
-        chat.lastMessage = text;
-        chat.updatedAt = new Date().toISOString();
-        if (role === 'user' && chat.messages.filter(m => m.role === 'user').length === 1) {
-          chat.title = text.slice(0, 50) + (text.length > 50 ? '...' : '');
+        const threads = await api('GET', `/assistants/${assistantId}/threads`);
+        const list = Array.isArray(threads) ? threads : threads.threads || [];
+        for (const t of list) {
+          const msgs = (t.messages || []).map(m => ({
+            role: m.role || 'user',
+            text: m.content || ''
+          }));
+          const firstUser = msgs.find(m => m.role === 'user');
+          const title = firstUser ? firstUser.text.slice(0, 60) + (firstUser.text.length > 60 ? '...' : '') : 'Untitled chat';
+          chatHistory.push({
+            id: t.thread_id,
+            threadId: t.thread_id,
+            title: title,
+            messages: msgs,
+            updatedAt: (t.messages?.length
+              ? t.messages[t.messages.length - 1].created_at
+              : t.created_at) || t.created_at
+          });
         }
-        saveChatHistory();
+        chatHistory.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+      } catch (e) {
+        console.error('Failed to load threads:', e);
       }
-    }
-
-    function loadChat(chatId) {
-      const chat = chatHistory.find(c => c.id === chatId);
-      if (!chat) return;
-      currentChatId = chat.id;
-      threadId = chat.threadId;
-      messagesEl.innerHTML = '';
-      for (const m of chat.messages) {
-        addMessage(m.role, m.text);
-      }
-      historyPanel.classList.remove('open');
-    }
-
-    function deleteChat(chatId) {
-      chatHistory = chatHistory.filter(c => c.id !== chatId);
-      saveChatHistory();
-      renderHistoryPanel();
-      if (currentChatId === chatId) {
-        createNewChat();
-      }
-    }
-
-    function renderHistoryPanel() {
-      if (chatHistory.length === 0) {
-        historyListEl.innerHTML = '<div class="empty-state">No chat history yet</div>';
-        return;
-      }
-      historyListEl.innerHTML = '';
-      for (const chat of chatHistory) {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        item.innerHTML = `
-          <div class="history-item-title">${escapeHtml(chat.title || 'Untitled')}</div>
-          <div class="history-item-meta">${chat.messages?.length || 0} messages · ${new Date(chat.updatedAt).toLocaleDateString()}</div>
-        `;
-        item.addEventListener('click', () => loadChat(chat.id));
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'history-item-delete';
-        delBtn.innerHTML = '&times;';
-        delBtn.title = 'Delete chat';
-        delBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (confirm('Delete this chat?')) deleteChat(chat.id);
-        });
-
-        item.appendChild(delBtn);
-        historyListEl.appendChild(item);
-      }
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    // Chat History
-    function loadChatHistory() {
-      try {
-        const stored = localStorage.getItem(LS_KEY_HISTORY);
-        chatHistory = stored ? JSON.parse(stored) : [];
-      } catch {
-        chatHistory = [];
-      }
-    }
-
-    function saveChatHistory() {
-      localStorage.setItem(LS_KEY_HISTORY, JSON.stringify(chatHistory));
     }
 
     function startNewChatFromMessage(firstMessage) {
@@ -1289,13 +1185,12 @@
       const newChat = {
         id: currentChatId,
         title: firstMessage.slice(0, 60) + (firstMessage.length > 60 ? '...' : ''),
-        messages: [],
+        messages: [{ role: 'user', text: firstMessage }],
         threadId: threadId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       chatHistory.unshift(newChat);
-      saveChatHistory();
     }
 
     function addMessageToHistory(role, text) {
@@ -1304,14 +1199,13 @@
       if (!chat) return;
       chat.messages.push({ role, text, time: Date.now() });
       chat.updatedAt = new Date().toISOString();
-      saveChatHistory();
     }
 
-    function createNewChat() {
+    async function createNewChat() {
       currentChatId = null;
       threadId = null;
       messagesEl.innerHTML = '';
-      initThread();
+      await initThread();
     }
 
     function loadChat(chat) {
@@ -1326,7 +1220,6 @@
 
     function deleteChat(chatId) {
       chatHistory = chatHistory.filter(c => c.id !== chatId);
-      saveChatHistory();
       if (currentChatId === chatId) {
         currentChatId = null;
         messagesEl.innerHTML = '';
@@ -1366,7 +1259,8 @@
     }
 
     // History panel
-    function openHistoryPanel() {
+    async function openHistoryPanel() {
+      await loadChatHistory();
       renderHistoryPanel();
       historyPanel.classList.add('open');
       historyOverlay.classList.add('open');
@@ -1433,24 +1327,26 @@
     });
 
     // Gate
-    loadChatHistory();
-    if (apiKey && assistantId) {
-      showApp();
-      if (chatHistory.length > 0) {
-        // Restore the most recent chat and its thread
-        const recent = chatHistory[0];
-        currentChatId = recent.id;
-        threadId = recent.threadId;
-        for (const msg of recent.messages) {
-          addMessage(msg.role, msg.text);
+    (async () => {
+      await loadChatHistory();
+      if (apiKey && assistantId) {
+        showApp();
+        if (chatHistory.length > 0) {
+          // Restore the most recent chat and its thread
+          const recent = chatHistory[0];
+          currentChatId = recent.id;
+          threadId = recent.threadId;
+          for (const msg of recent.messages) {
+            addMessage(msg.role, msg.text);
+          }
+        } else {
+          await createNewChat();
         }
+        loadNotes();
       } else {
-        createNewChat();
+        showGate();
       }
-      loadNotes();
-    } else {
-      showGate();
-    }
+    })();
 
     startBtn.addEventListener('click', async () => {
       const key = apiKeyInput.value.trim();
