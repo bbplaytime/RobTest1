@@ -670,6 +670,83 @@
       color: var(--noto-text);
       border: 1px solid var(--noto-border-subtle);
       border-bottom-left-radius: 4px;
+      max-width: 92%;
+      line-height: 1.55;
+    }
+    .msg.assistant h1, .msg.assistant h2, .msg.assistant h3, .msg.assistant h4 {
+      margin: 12px 0 6px;
+      font-weight: 600;
+      color: var(--noto-text);
+    }
+    .msg.assistant h1 { font-size: 1.2rem; }
+    .msg.assistant h2 { font-size: 1.1rem; }
+    .msg.assistant h3 { font-size: 1rem; }
+    .msg.assistant h4 { font-size: 0.95rem; }
+    .msg.assistant p {
+      margin: 6px 0;
+    }
+    .msg.assistant ul, .msg.assistant ol {
+      margin: 6px 0 6px 18px;
+      padding-left: 4px;
+    }
+    .msg.assistant li {
+      margin: 3px 0;
+    }
+    .msg.assistant code {
+      background: rgba(0,0,0,0.25);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      color: #e6e1cf;
+    }
+    .msg.assistant pre {
+      background: #1a1a1a;
+      border: 1px solid var(--noto-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 10px 0;
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .msg.assistant pre code {
+      background: transparent;
+      padding: 0;
+      font-size: 0.85em;
+      color: #e6e1cf;
+    }
+    .msg.assistant blockquote {
+      border-left: 3px solid var(--noto-accent);
+      margin: 8px 0;
+      padding: 4px 12px;
+      color: var(--noto-text-secondary);
+      background: rgba(124,106,247,0.08);
+      border-radius: 0 6px 6px 0;
+    }
+    .msg.assistant a {
+      color: #7eb8f7;
+      text-decoration: none;
+    }
+    .msg.assistant a:hover { text-decoration: underline; }
+    .msg.assistant table {
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9rem;
+      max-width: 100%;
+    }
+    .msg.assistant th, .msg.assistant td {
+      border: 1px solid var(--noto-border);
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .msg.assistant th {
+      background: var(--noto-surface-overlay);
+      font-weight: 600;
+    }
+    .msg.assistant hr {
+      border: none;
+      border-top: 1px solid var(--noto-border);
+      margin: 12px 0;
     }
     .msg.system {
       align-self: center;
@@ -1145,6 +1222,11 @@
     </div>
   </div>
 
+  <!-- Markdown renderer + sanitizer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script>
     const BASE_URL = 'https://app.backboard.io/api';
     const LS_KEY_API = 'backboard_apiKey';
@@ -1474,7 +1556,26 @@
     function addMessage(role, text) {
       const div = document.createElement('div');
       div.className = `msg ${role}`;
-      div.textContent = text;
+      if (role === 'assistant') {
+        // Parse markdown, sanitize, render
+        const rawHtml = marked.parse(text || '', { breaks: true });
+        div.innerHTML = DOMPurify.sanitize(rawHtml, {
+          ALLOWED_TAGS: [
+            'p','br','strong','em','del','h1','h2','h3','h4','h5','h6',
+            'ul','ol','li','blockquote','code','pre','a','hr','table',
+            'thead','tbody','tr','th','td','sup','sub','div'
+          ],
+          ALLOWED_ATTR: ['href','title','class']
+        });
+        // Run syntax highlighting
+        requestAnimationFrame(() => {
+          div.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+          });
+        });
+      } else {
+        div.textContent = text;
+      }
       messagesEl.appendChild(div);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
