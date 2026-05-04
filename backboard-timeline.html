@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backboard Release Timeline</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card-bg: #13131f;
+    --card-border: #1e1e32;
+    --accent: #6366f1;
+    --accent-glow: rgba(99, 102, 241, 0.3);
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --line: #1e293b;
+    --dot: #6366f1;
+    --tag-bg: rgba(99, 102, 241, 0.12);
+    --tag-text: #a5b4fc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    padding: 60px 40px 20px;
+    text-align: center;
+    max-width: 700px;
+  }
+
+  header h1 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #818cf8, #6366f1, #4f46e5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  header p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+
+  .timeline-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 40px 0 80px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+    -webkit-overflow-scrolling: touch;
+    cursor: grab;
+  }
+
+  .timeline-wrapper:active { cursor: grabbing; }
+
+  .timeline-wrapper::-webkit-scrollbar { height: 6px; }
+  .timeline-wrapper::-webkit-scrollbar-track { background: transparent; }
+  .timeline-wrapper::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+  .timeline {
+    display: flex;
+    position: relative;
+    min-width: max-content;
+    padding: 0 60px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 60px;
+    right: 60px;
+    height: 2px;
+    background: var(--line);
+    transform: translateY(-50%);
+  }
+
+  .month-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .month-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .cards-row {
+    display: flex;
+    gap: 24px;
+  }
+
+  .card-col {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 320px;
+    flex-shrink: 0;
+  }
+
+  .card-col.top { padding-bottom: 42px; }
+  .card-col.bottom { padding-top: 42px; }
+
+  .card-col .connector {
+    position: absolute;
+    left: 50%;
+    width: 2px;
+    background: var(--line);
+  }
+
+  .card-col.top .connector { bottom: 0; height: 42px; }
+  .card-col.bottom .connector { top: 0; height: 42px; }
+
+  .card-col .dot {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--dot);
+    box-shadow: 0 0 12px var(--accent-glow);
+    z-index: 3;
+  }
+
+  .card-col.top .dot { bottom: -6px; }
+  .card-col.bottom .dot { top: -6px; }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12);
+  }
+
+  .card-date {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--tag-text);
+    background: var(--tag-bg);
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
+  }
+
+  .card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    color: #f1f5f9;
+  }
+
+  .card p {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .tag {
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(148, 163, 184, 0.08);
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  .tag.highlight {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+  }
+
+  .tag.green {
+    background: rgba(52, 211, 153, 0.12);
+    color: #6ee7b7;
+  }
+
+  .tag.amber {
+    background: rgba(251, 191, 36, 0.12);
+    color: #fcd34d;
+  }
+
+  .spacer {
+    width: 60px;
+    flex-shrink: 0;
+  }
+
+  footer {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 768px) {
+    header { padding: 40px 20px 10px; }
+    header h1 { font-size: 1.8rem; }
+    .card-col { width: 280px; }
+    .timeline { padding: 0 30px; }
+    .timeline::before { left: 30px; right: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Backboard Release Timeline</h1>
+  <p>A journey through every production deployment — from model support to the new unified API.</p>
+</header>
+
+<div class="timeline-wrapper" id="timelineWrapper">
+  <div class="timeline">
+
+    <!-- ===== JUN 2025 ===== -->
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Jun 13, 2025</div>
+        <h3>🤖 Full Model Support</h3>
+        <p>Chat now supports multiple AI models: 4.1, 4.1 Mini, 4.1 Nano, o3 Mini, and o1. Last-used model auto-selected when revisiting threads.</p>
+        <div class="card-tags"><span class="tag highlight">Models</span><span class="tag">UI</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Jun 19, 2025</div>
+        <h3>🎨 Fresh UI &amp; Prompt Management</h3>
+        <p>Cleaner UI with polished mobile experience. Model selector in the input field. Save, share, and manage prompts with full CRUD.</p>
+        <div class="card-tags"><span class="tag highlight">UI</span><span class="tag">Prompts</span><span class="tag">Mobile</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Jun 25, 2025</div>
+        <h3>💡 Agent Mode &amp; Mobile Speed</h3>
+        <p>Agent Mode in chat via /command with special tags. Multi-user threads with independent agent selection. ChatDB deprecated.</p>
+        <div class="card-tags"><span class="tag highlight">Agents</span><span class="tag green">Mobile</span></div>
+      </div>
+    </div>
+
+    <!-- ===== JUL 2025 ===== -->
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Jul 4, 2025</div>
+        <h3>🔗 Cross-Data Chat Upgrade</h3>
+        <p>Cross-talking between multiple data sources, no more 20-row limit. Seamless analysis across large datasets.</p>
+        <div class="card-tags"><span class="tag highlight">RAG</span><span class="tag">Data</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Jul 14, 2025</div>
+        <h3>🚀 Smarter Agents &amp; Performance</h3>
+        <p>Profile pictures in chat. Agents support 30 documents (400MB). Prompt-injection-protected context. Agent Library &amp; Oracles separated.</p>
+        <div class="card-tags"><span class="tag highlight">Agents</span><span class="tag">Documents</span><span class="tag green">Performance</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Jul 31, 2025</div>
+        <h3>☁️ S3 Migration</h3>
+        <p>Entire codebase migrated from EC2 to S3. Chat becomes the default landing page. Course creation UI fixes.</p>
+        <div class="card-tags"><span class="tag amber">Infrastructure</span><span class="tag">UI</span></div>
+      </div>
+    </div>
+
+    <!-- ===== AUG 2025 ===== -->
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Aug 28, 2025</div>
+        <h3>💳 Espri — Pricing &amp; Billing</h3>
+        <p>Self-serve subscriptions (Standard, Professional, Enterprise). Stripe integration. 7-day trial. Company admin controls &amp; invoices.</p>
+        <div class="card-tags"><span class="tag highlight">Launch</span><span class="tag amber">Billing</span><span class="tag">Stripe</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Aug 28, 2025</div>
+        <h3>💬 Chat Bubble Widget</h3>
+        <p>Embeddable chat bubble widget deployed to production.</p>
+        <div class="card-tags"><span class="tag">Widget</span></div>
+      </div>
+    </div>
+
+    <!-- ===== SEP 2025 ===== -->
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Sep 22, 2025</div>
+        <h3>🐛 RAG Fixes &amp; Chat Polish</h3>
+        <p>RAG restored for Anthropic models. Minimal markdown rendering. Hidden tool events in API. Chained internal tool calls.</p>
+        <div class="card-tags"><span class="tag highlight">RAG</span><span class="tag">API</span><span class="tag">Bug Fix</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Sep 24, 2025</div>
+        <h3>📦 SDKs &amp; Docs Deployed</h3>
+        <p>Python and JavaScript SDKs published with updated documentation and frontend optimizations.</p>
+        <div class="card-tags"><span class="tag highlight">SDK</span><span class="tag">Docs</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Sep 29, 2025</div>
+        <h3>🧠 All Models Live</h3>
+        <p>Full model lineup deployed with frontend fixes and performance optimizations across the platform.</p>
+        <div class="card-tags"><span class="tag highlight">Models</span><span class="tag green">Performance</span></div>
+      </div>
+    </div>
+
+    <!-- ===== OCT 2025 ===== -->
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Oct 7, 2025</div>
+        <h3>⚡ Async SDK &amp; Error Handling</h3>
+        <p>Python SDK async support. Strict model checking. Silent failures now surface to users. Better tool-call abstraction. npm &amp; PyPI releases.</p>
+        <div class="card-tags"><span class="tag highlight">SDK</span><span class="tag amber">Breaking</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Oct 9, 2025</div>
+        <h3>🔐 New Auth Architecture</h3>
+        <p>Token verification moved to backend. Session/local storage replaces cookies. No more waitlist — direct signups with $10 credits.</p>
+        <div class="card-tags"><span class="tag amber">Auth</span><span class="tag highlight">Launch</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Oct 17, 2025</div>
+        <h3>📡 Models API &amp; Memory</h3>
+        <p>Query models by provider/features via API. Search specific models. Memory with context management goes live.</p>
+        <div class="card-tags"><span class="tag highlight">API</span><span class="tag">Memory</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Oct 20, 2025</div>
+        <h3>🧠 Memory SDK Operations</h3>
+        <p>Both SDKs now support full memory operations — create, read, update, and delete memories programmatically.</p>
+        <div class="card-tags"><span class="tag highlight">SDK</span><span class="tag">Memory</span></div>
+      </div>
+    </div>
+
+    <!-- ===== NOV 2025 ===== -->
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Nov 7, 2025</div>
+        <h3>⚡ Turbopuffer Optimization</h3>
+        <p>RAG and Memory now send data as columns (not rows) to turbopuffer for bulk chunking. Quickstart SDK redesigned with memory docs.</p>
+        <div class="card-tags"><span class="tag highlight">Performance</span><span class="tag">RAG</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Nov 13, 2025</div>
+        <h3>☁️ AWS Models &amp; Google SSO</h3>
+        <p>AWS Bedrock models deployed. 200MB assistant file uploads. Google SSO live. 16K+ models in library with 12 embedding models.</p>
+        <div class="card-tags"><span class="tag highlight">Models</span><span class="tag amber">SSO</span><span class="tag">AWS</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Nov 25, 2025</div>
+        <h3>💰 Memory Pricing Live</h3>
+        <p>Pay-per-use: $0.003/read, $0.004/batch write (3 memories). All deductions visible in billing activity.</p>
+        <div class="card-tags"><span class="tag amber">Pricing</span><span class="tag">Memory</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Nov 26, 2025</div>
+        <h3>⚡ Dynamic Caching</h3>
+        <p>Memory queries, assistant security checks, and thread validations cached. Response speed significantly increased.</p>
+        <div class="card-tags"><span class="tag green">Performance</span><span class="tag highlight">Cache</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Nov 28, 2025</div>
+        <h3>📊 KPI Dashboard</h3>
+        <p>Superadmin KPIs: active users, paying users, disabled users, memory token usage graphs. Time-range filters. Card changes mid-cycle.</p>
+        <div class="card-tags"><span class="tag highlight">Analytics</span><span class="tag amber">Billing</span></div>
+      </div>
+    </div>
+
+    <!-- ===== DEC 2025 ===== -->
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Dec 3, 2025</div>
+        <h3>👥 Shared Client Wallet</h3>
+        <p>Single shared wallet per client instead of individual wallets per user. Simplified billing across teams.</p>
+        <div class="card-tags"><span class="tag amber">Billing</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Dec 4, 2025</div>
+        <h3>🛡️ Cloudflare Turnstile</h3>
+        <p>Bot protection on all auth routes. Adaptive challenges only when needed — better UX than traditional captcha.</p>
+        <div class="card-tags"><span class="tag amber">Security</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Dec 12, 2025</div>
+        <h3>💎 New Pricing Tiers</h3>
+        <p>$29 and $249 subscriptions. Auto-reload on balance threshold. Prorated upgrades. Credit premium reduced from 60% to 40%.</p>
+        <div class="card-tags"><span class="tag amber">Pricing</span><span class="tag highlight">Launch</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Dec 22, 2025</div>
+        <h3>🏗️ Async AWS Infrastructure</h3>
+        <p>Load balancers + EC2 instances for scale. Async memory, billing, threads, and assistants. Single-instance deployment scripts.</p>
+        <div class="card-tags"><span class="tag amber">Infrastructure</span><span class="tag green">Performance</span></div>
+      </div>
+    </div>
+
+    <!-- ===== JAN 2026 ===== -->
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Jan 19, 2026</div>
+        <h3>🔑 BYOK — Bring Your Own Keys</h3>
+        <p>Add your own API keys for any provider (OpenAI, Claude, Gemini, XAI, OpenRouter). Zero token charges on BYOK traffic.</p>
+        <div class="card-tags"><span class="tag highlight">Feature</span><span class="tag amber">Enterprise</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Jan 27, 2026</div>
+        <h3>🎯 Top-K &amp; RAG Citations</h3>
+        <p>Top-K parameter (1–100, default 10). Streaming API shows which documents were used. Both SDKs updated.</p>
+        <div class="card-tags"><span class="tag highlight">API</span><span class="tag">RAG</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Jan 28, 2026</div>
+        <h3>📚 16K+ Model Library</h3>
+        <p>Over 16,000 models loaded with accurate context limits and tool-calling metadata. Dynamic library maintenance.</p>
+        <div class="card-tags"><span class="tag highlight">Models</span></div>
+      </div>
+    </div>
+
+    <!-- ===== FEB 2026 ===== -->
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Feb 4, 2026</div>
+        <h3>🧪 Dev Environment Live</h3>
+        <p>dev.app.backboard.io for internal testing. Role parameter in SDKs. All new features must pass dev before prod.</p>
+        <div class="card-tags"><span class="tag amber">Infrastructure</span><span class="tag">SDK</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Feb 10, 2026</div>
+        <h3>🖼️ Image Support in RAG</h3>
+        <p>Images now usable in RAG across chat, API, and SDKs for richer document understanding.</p>
+        <div class="card-tags"><span class="tag highlight">RAG</span><span class="tag">Multimodal</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Feb 17, 2026</div>
+        <h3>🛠️ Superadmin Credits &amp; Session Fix</h3>
+        <p>Superadmins can add credits to any account. New manage-users UI. Session persistence on refresh.</p>
+        <div class="card-tags"><span class="tag">Admin</span><span class="tag">UI</span><span class="tag">Bug Fix</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Feb 18, 2026</div>
+        <h3>💲 Model Pricing in API</h3>
+        <p>Per-million-token pricing for all models via API endpoint. Model library shows pricing. Faster model search.</p>
+        <div class="card-tags"><span class="tag highlight">API</span><span class="tag amber">Pricing</span></div>
+      </div>
+    </div>
+
+    <!-- ===== MAR 2026 ===== -->
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Mar 2, 2026</div>
+        <h3>🔑 Multiple API Keys</h3>
+        <p>Support for multiple API keys per account. Memory token usage view. Active user counts for superadmins.</p>
+        <div class="card-tags"><span class="tag highlight">API</span><span class="tag">Admin</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Mar 6, 2026</div>
+        <h3>📊 Dashboard &amp; Billing API</h3>
+        <p>Dashboard redesign. Billing API for recent activity. All embedding model combinations working. SDK updates for both languages.</p>
+        <div class="card-tags"><span class="tag highlight">API</span><span class="tag">UI</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Mar 11, 2026</div>
+        <h3>🧠 Custom Context Management</h3>
+        <p>Dynamic context window adjusts in real-time per model. True model independency across tools, memory, and RAG. Search Memory endpoint.</p>
+        <div class="card-tags"><span class="tag highlight">Platform</span><span class="tag">Memory</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Mar 24, 2026</div>
+        <h3>💎 New Pricing: $5 / $20 / $400</h3>
+        <p>Three-tier subscription with memory Lite/Pro versions. Mid-cycle upgrades with proration. Downgrades supported. $5 credit for new users.</p>
+        <div class="card-tags"><span class="tag amber">Pricing</span><span class="tag highlight">Launch</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Mar 24, 2026</div>
+        <h3>🎛️ Memory Orchestration &amp; Revamp</h3>
+        <p>Custom memory orchestration open to all. Multi-client signup. Account deletion. New minimal frontend design. API Calls, Memory &amp; Documents pages.</p>
+        <div class="card-tags"><span class="tag highlight">Platform</span><span class="tag">UI</span><span class="tag">Memory</span></div>
+      </div>
+    </div>
+
+    <!-- ===== APR 2026 ===== -->
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Apr 2, 2026</div>
+        <h3>🎁 Referral Program &amp; MMR</h3>
+        <p>Referral credits on second bill. MMR (Maximal Marginal Relevance) for Memory Lite. Citations toggle. Bulk document upload.</p>
+        <div class="card-tags"><span class="tag highlight">Growth</span><span class="tag">Memory</span></div>
+      </div>
+    </div>
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Apr 13, 2026</div>
+        <h3>📋 JSON Output Support</h3>
+        <p>Structured JSON output in API. Superadmin custom time range fix. Docs and SDKs updated.</p>
+        <div class="card-tags"><span class="tag highlight">API</span><span class="tag">SDK</span></div>
+      </div>
+    </div>
+
+    <div class="card-col top">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">Apr 16, 2026</div>
+        <h3>🧠 Thinking / Reasoning</h3>
+        <p>Reasoning capabilities for all models via API. Provider-specific thinking parameters. Opus 4.7 and new models. Tool call fixes.</p>
+        <div class="card-tags"><span class="tag highlight">Models</span><span class="tag">API</span></div>
+      </div>
+    </div>
+
+    <!-- ===== MAY 2026 ===== -->
+
+    <div class="card-col bottom">
+      <div class="connector"></div><div class="dot"></div>
+      <div class="card">
+        <div class="card-date">May 1, 2026</div>
+        <h3>⚡ One Call to Rule Them All</h3>
+        <p>New send_message endpoint — no setup required. Per-turn configuration. Streaming, tools, memory, web search in one call. Full backward compatibility.</p>
+        <div class="card-tags"><span class="tag highlight">API v2</span><span class="tag green">Breaking</span><span class="tag">SDK</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  Backboard · Release Timeline · 2025–2026
+</footer>
+
+<script>
+  // Enable drag-to-scroll on the timeline
+  const wrapper = document.getElementById('timelineWrapper');
+  let isDown = false, startX, scrollLeft;
+
+  wrapper.addEventListener('mousedown', (e) => {
+    isDown = true;
+    wrapper.style.cursor = 'grabbing';
+    startX = e.pageX - wrapper.offsetLeft;
+    scrollLeft = wrapper.scrollLeft;
+  });
+
+  wrapper.addEventListener('mouseleave', () => {
+    isDown = false;
+    wrapper.style.cursor = 'grab';
+  });
+
+  wrapper.addEventListener('mouseup', () => {
+    isDown = false;
+    wrapper.style.cursor = 'grab';
+  });
+
+  wrapper.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - wrapper.offsetLeft;
+    const walk = (x - startX) * 2;
+    wrapper.scrollLeft = scrollLeft - walk;
+  });
+
+  // Touch support
+  wrapper.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].pageX - wrapper.offsetLeft;
+    scrollLeft = wrapper.scrollLeft;
+  });
+
+  wrapper.addEventListener('touchmove', (e) => {
+    const x = e.touches[0].pageX - wrapper.offsetLeft;
+    const walk = (x - startX) * 2;
+    wrapper.scrollLeft = scrollLeft - walk;
+  });
+
+  // Scroll to center on load
+  window.addEventListener('load', () => {
+    wrapper.scrollLeft = (wrapper.scrollWidth - wrapper.clientWidth) / 2;
+  });
+</script>
+
+</body>
+</html>
